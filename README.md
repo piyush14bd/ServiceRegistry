@@ -101,7 +101,14 @@ Demo client showing how services interact with the registry.
 - **KUBERNETES.md** - Complete Kubernetes deployment guide
 - **deploy-minikube.sh** - Automated deployment script
 
+### 5. HashiCorp Consul Integration
+- **consul_client.py** - Consul service discovery client
+- **CONSUL.md** - Production-grade service registry guide
+- Compare custom implementation with industry-standard Consul
+
 ## 🚀 Getting Started
+
+Choose your learning path:
 
 ### Option 1: Local Development (Recommended for Learning)
 
