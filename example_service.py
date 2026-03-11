@@ -147,7 +147,7 @@ def demo_service_discovery():
     print("SERVICE DISCOVERY DEMO")
     print("="*60)
     
-    registry_url = "http://localhost:5000"
+    registry_url = "http://localhost:5001"
     
     # Check registry health
     try:

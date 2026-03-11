@@ -286,10 +286,10 @@ if __name__ == '__main__':
     cleanup_thread = threading.Thread(target=cleanup_stale_services, daemon=True)
     cleanup_thread.start()
     
-    print("Service Registry starting on port 5000...")
+    print("Service Registry starting on port 5001...")
     print(f"Heartbeat timeout: {HEARTBEAT_TIMEOUT}s")
     print(f"Cleanup interval: {CLEANUP_INTERVAL}s")
     
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5001, debug=True)
 
 # Made with Bob

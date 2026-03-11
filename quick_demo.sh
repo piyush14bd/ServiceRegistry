@@ -36,49 +36,49 @@ echo "   Registry PID: $REGISTRY_PID"
 sleep 2
 
 # Check if registry is running
-if ! curl -s http://localhost:5000/health > /dev/null; then
+if ! curl -s http://localhost:5001/health > /dev/null; then
     echo "❌ Failed to start registry. Check /tmp/registry.log"
     kill $REGISTRY_PID 2>/dev/null
     exit 1
 fi
 
-echo "✅ Registry is running on http://localhost:5000"
+echo "✅ Registry is running on http://localhost:5001"
 echo ""
 
 # Register first service
 echo "📝 Registering user-service..."
-curl -s -X POST http://localhost:5000/register \
+curl -s -X POST http://localhost:5001/register \
   -H "Content-Type: application/json" \
   -d '{"service": "user-service", "address": "http://localhost:8001"}' | python3 -m json.tool
 echo ""
 
 # Register second service
 echo "📝 Registering payment-service..."
-curl -s -X POST http://localhost:5000/register \
+curl -s -X POST http://localhost:5001/register \
   -H "Content-Type: application/json" \
   -d '{"service": "payment-service", "address": "http://localhost:8002"}' | python3 -m json.tool
 echo ""
 
 # Register another instance of user-service
 echo "📝 Registering another user-service instance..."
-curl -s -X POST http://localhost:5000/register \
+curl -s -X POST http://localhost:5001/register \
   -H "Content-Type: application/json" \
   -d '{"service": "user-service", "address": "http://localhost:8003"}' | python3 -m json.tool
 echo ""
 
 # List all services
 echo "📋 Listing all registered services..."
-curl -s http://localhost:5000/services | python3 -m json.tool
+curl -s http://localhost:5001/services | python3 -m json.tool
 echo ""
 
 # Discover user-service
 echo "🔍 Discovering user-service instances..."
-curl -s http://localhost:5000/discover/user-service | python3 -m json.tool
+curl -s http://localhost:5001/discover/user-service | python3 -m json.tool
 echo ""
 
 # Send heartbeat
 echo "💓 Sending heartbeat for user-service..."
-curl -s -X POST http://localhost:5000/heartbeat \
+curl -s -X POST http://localhost:5001/heartbeat \
   -H "Content-Type: application/json" \
   -d '{"service": "user-service", "address": "http://localhost:8001"}' | python3 -m json.tool
 echo ""
@@ -93,7 +93,7 @@ done
 echo ""
 
 echo "🔍 Checking services after timeout..."
-curl -s http://localhost:5000/discover/user-service | python3 -m json.tool
+curl -s http://localhost:5001/discover/user-service | python3 -m json.tool
 echo ""
 echo "   Notice: Services without heartbeats have been removed!"
 echo ""

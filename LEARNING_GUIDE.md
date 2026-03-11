@@ -257,13 +257,13 @@ python service_registry_improved.py
 python example_service.py user-service 8001
 
 # Terminal 3: Check it's registered
-curl http://localhost:5000/discover/user-service
+curl http://localhost:5001/discover/user-service
 
 # Terminal 2: Kill service (Ctrl+C without graceful shutdown)
 # Force kill: kill -9 <pid>
 
 # Terminal 3: Wait 30 seconds, check again
-curl http://localhost:5000/discover/user-service
+curl http://localhost:5001/discover/user-service
 # Should be empty after cleanup!
 ```
 

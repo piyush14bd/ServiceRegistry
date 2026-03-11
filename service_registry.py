@@ -17,6 +17,6 @@ def register():
 def discover(service):
     return jsonify(registry.get(service, []))
 
-app.run(port=5000)
+app.run(port=5001)
 
 # Made with Bob

@@ -115,7 +115,7 @@ python service_registry.py
 python service_registry_improved.py
 ```
 
-The registry will start on `http://localhost:5000`
+The registry will start on `http://localhost:5001`
 
 ### Testing with Example Services
 
@@ -237,7 +237,7 @@ When a service starts, it tells the registry:
 
 ```python
 # Service registers itself
-requests.post("http://registry:5000/register", json={
+requests.post("http://registry:5001/register", json={
     "service": "user-service",
     "address": "http://localhost:8001"
 })
@@ -251,7 +251,7 @@ When a service needs to call another service:
 
 ```python
 # Discover payment service
-response = requests.get("http://registry:5000/discover/payment-service")
+response = requests.get("http://registry:5001/discover/payment-service")
 instances = response.json()['instances']
 payment_url = instances[0]['address']  # Use first instance
 ```
@@ -265,7 +265,7 @@ Services periodically send "I'm alive" signals:
 ```python
 # Send heartbeat every 10 seconds
 while True:
-    requests.post("http://registry:5000/heartbeat", json={
+    requests.post("http://registry:5001/heartbeat", json={
         "service": "user-service",
         "address": "http://localhost:8001"
     })
@@ -279,7 +279,7 @@ When a service stops, it should deregister:
 
 ```python
 # On shutdown
-requests.post("http://registry:5000/deregister", json={
+requests.post("http://registry:5001/deregister", json={
     "service": "user-service",
     "address": "http://localhost:8001"
 })
@@ -319,23 +319,23 @@ Production-grade service registry with:
 
 ```bash
 # Register a service
-curl -X POST http://localhost:5000/register \
+curl -X POST http://localhost:5001/register \
   -H "Content-Type: application/json" \
   -d '{"service": "test-service", "address": "http://localhost:9000"}'
 
 # Discover services
-curl http://localhost:5000/discover/test-service
+curl http://localhost:5001/discover/test-service
 
 # List all services
-curl http://localhost:5000/services
+curl http://localhost:5001/services
 
 # Send heartbeat
-curl -X POST http://localhost:5000/heartbeat \
+curl -X POST http://localhost:5001/heartbeat \
   -H "Content-Type: application/json" \
   -d '{"service": "test-service", "address": "http://localhost:9000"}'
 
 # Deregister
-curl -X POST http://localhost:5000/deregister \
+curl -X POST http://localhost:5001/deregister \
   -H "Content-Type: application/json" \
   -d '{"service": "test-service", "address": "http://localhost:9000"}'
 ```
