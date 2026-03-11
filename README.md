@@ -1,0 +1,332 @@
+# Service Registry - Distributed System Learning Project
+
+A simple but functional service registry implementation for understanding service discovery in distributed systems.
+
+## 📚 What is a Service Registry?
+
+A **Service Registry** is a database of available service instances in a distributed system. It enables:
+
+- **Service Registration**: Services register themselves when they start
+- **Service Discovery**: Services can find and communicate with each other
+- **Health Monitoring**: Track which services are alive and healthy
+- **Load Balancing**: Distribute requests across multiple service instances
+
+## 🏗️ Architecture
+
+```
+┌─────────────┐         ┌─────────────────┐         ┌─────────────┐
+│  Service A  │────────▶│ Service Registry │◀────────│  Service B  │
+│ (Port 8001) │ Register│   (Port 5000)    │ Discover│ (Port 8002) │
+└─────────────┘         └─────────────────┘         └─────────────┘
+      │                          │                          │
+      └──────── Heartbeat ───────┘                          │
+                                 └──────── Heartbeat ───────┘
+```
+
+## 📁 Project Files
+
+### 1. `service_registry.py` (Original Example)
+The basic implementation you provided - simple but functional.
+
+**Pros:**
+- ✅ Simple and easy to understand
+- ✅ Core functionality works
+
+**Cons:**
+- ❌ No error handling
+- ❌ No health checks
+- ❌ No way to remove services
+- ❌ Services stay registered forever (even if they crash)
+
+### 2. `service_registry_improved.py` (Production-Ready)
+Enhanced version with enterprise features.
+
+**New Features:**
+- ✅ **Error Handling**: Proper validation and error responses
+- ✅ **Health Checks**: Heartbeat mechanism to detect dead services
+- ✅ **Deregistration**: Services can unregister gracefully
+- ✅ **Auto Cleanup**: Removes stale services automatically
+- ✅ **Thread Safety**: Uses locks for concurrent access
+- ✅ **Detailed Responses**: Rich JSON responses with metadata
+- ✅ **Service Listing**: View all registered services
+
+### 3. `example_service.py`
+Demo client showing how services interact with the registry.
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+```bash
+pip install flask requests
+```
+
+### Running the Registry
+
+**Option 1: Basic Version**
+```bash
+python service_registry.py
+```
+
+**Option 2: Improved Version (Recommended)**
+```bash
+python service_registry_improved.py
+```
+
+The registry will start on `http://localhost:5000`
+
+### Testing with Example Services
+
+**Terminal 1: Start the Registry**
+```bash
+python service_registry_improved.py
+```
+
+**Terminal 2: Start User Service**
+```bash
+python example_service.py user-service 8001
+```
+
+**Terminal 3: Start Payment Service**
+```bash
+python example_service.py payment-service 8002
+```
+
+**Terminal 4: Run Discovery Demo**
+```bash
+python example_service.py demo
+```
+
+## 📡 API Endpoints
+
+### 1. Register a Service
+```http
+POST /register
+Content-Type: application/json
+
+{
+  "service": "user-service",
+  "address": "http://localhost:8001"
+}
+```
+
+**Response:**
+```json
+{
+  "status": "registered",
+  "message": "Service user-service registered at http://localhost:8001"
+}
+```
+
+### 2. Discover a Service
+```http
+GET /discover/user-service
+```
+
+**Response:**
+```json
+{
+  "service": "user-service",
+  "instances": [
+    {
+      "address": "http://localhost:8001",
+      "uptime_seconds": 45.2
+    }
+  ],
+  "count": 1
+}
+```
+
+### 3. Send Heartbeat
+```http
+POST /heartbeat
+Content-Type: application/json
+
+{
+  "service": "user-service",
+  "address": "http://localhost:8001"
+}
+```
+
+### 4. Deregister a Service
+```http
+POST /deregister
+Content-Type: application/json
+
+{
+  "service": "user-service",
+  "address": "http://localhost:8001"
+}
+```
+
+### 5. List All Services
+```http
+GET /services
+```
+
+**Response:**
+```json
+{
+  "services": {
+    "user-service": {
+      "total_instances": 2,
+      "active_instances": 2
+    },
+    "payment-service": {
+      "total_instances": 1,
+      "active_instances": 1
+    }
+  },
+  "total_services": 2
+}
+```
+
+### 6. Health Check
+```http
+GET /health
+```
+
+## 🔍 Key Concepts Explained
+
+### 1. Service Registration
+When a service starts, it tells the registry:
+- **Who am I?** (service name)
+- **Where am I?** (address/port)
+
+```python
+# Service registers itself
+requests.post("http://registry:5000/register", json={
+    "service": "user-service",
+    "address": "http://localhost:8001"
+})
+```
+
+### 2. Service Discovery
+When a service needs to call another service:
+- Ask the registry for available instances
+- Get list of addresses
+- Choose one (round-robin, random, etc.)
+
+```python
+# Discover payment service
+response = requests.get("http://registry:5000/discover/payment-service")
+instances = response.json()['instances']
+payment_url = instances[0]['address']  # Use first instance
+```
+
+### 3. Heartbeat Mechanism
+Services periodically send "I'm alive" signals:
+- Prevents stale entries
+- Detects crashed services
+- Registry removes services that stop sending heartbeats
+
+```python
+# Send heartbeat every 10 seconds
+while True:
+    requests.post("http://registry:5000/heartbeat", json={
+        "service": "user-service",
+        "address": "http://localhost:8001"
+    })
+    time.sleep(10)
+```
+
+### 4. Graceful Shutdown
+When a service stops, it should deregister:
+- Prevents clients from calling dead services
+- Keeps registry clean
+
+```python
+# On shutdown
+requests.post("http://registry:5000/deregister", json={
+    "service": "user-service",
+    "address": "http://localhost:8001"
+})
+```
+
+## 🎯 Real-World Use Cases
+
+### Netflix Eureka
+Netflix uses a similar pattern with their Eureka service registry:
+- Microservices register on startup
+- Other services discover them dynamically
+- Handles thousands of service instances
+
+### Kubernetes Service Discovery
+Kubernetes has built-in service discovery:
+- Services register via DNS
+- Load balancing across pods
+- Health checks and auto-restart
+
+### Consul by HashiCorp
+Production-grade service registry with:
+- Health checking
+- Key-value store
+- Multi-datacenter support
+
+## 🔧 Improvements You Could Add
+
+1. **Persistence**: Save registry to disk/database
+2. **Load Balancing**: Return instances in round-robin order
+3. **Service Metadata**: Store version, tags, capabilities
+4. **Authentication**: Secure the registry endpoints
+5. **Monitoring**: Add metrics and logging
+6. **Clustering**: Multiple registry instances for high availability
+7. **Service Mesh**: Integrate with Istio or Linkerd
+
+## 🧪 Testing with cURL
+
+```bash
+# Register a service
+curl -X POST http://localhost:5000/register \
+  -H "Content-Type: application/json" \
+  -d '{"service": "test-service", "address": "http://localhost:9000"}'
+
+# Discover services
+curl http://localhost:5000/discover/test-service
+
+# List all services
+curl http://localhost:5000/services
+
+# Send heartbeat
+curl -X POST http://localhost:5000/heartbeat \
+  -H "Content-Type: application/json" \
+  -d '{"service": "test-service", "address": "http://localhost:9000"}'
+
+# Deregister
+curl -X POST http://localhost:5000/deregister \
+  -H "Content-Type: application/json" \
+  -d '{"service": "test-service", "address": "http://localhost:9000"}'
+```
+
+## 📊 Comparison: Original vs Improved
+
+| Feature | Original | Improved |
+|---------|----------|----------|
+| Registration | ✅ | ✅ |
+| Discovery | ✅ | ✅ |
+| Error Handling | ❌ | ✅ |
+| Heartbeats | ❌ | ✅ |
+| Deregistration | ❌ | ✅ |
+| Auto Cleanup | ❌ | ✅ |
+| Thread Safety | ❌ | ✅ |
+| Service Listing | ❌ | ✅ |
+| Health Endpoint | ❌ | ✅ |
+| Uptime Tracking | ❌ | ✅ |
+
+## 🎓 Learning Resources
+
+- **Microservices Patterns** by Chris Richardson
+- **Building Microservices** by Sam Newman
+- **Martin Fowler's Blog**: https://martinfowler.com/articles/microservices.html
+
+## 📝 License
+
+This is a learning project - feel free to use and modify as needed!
+
+## 🤝 Contributing
+
+This is an educational project. Feel free to:
+- Add new features
+- Improve documentation
+- Create additional examples
+- Share your learnings!
