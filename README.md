@@ -55,14 +55,20 @@ A **Service Registry** is a database of available service instances in a distrib
 
 ## 🏗️ Architecture
 
-```
-┌─────────────┐         ┌─────────────────┐         ┌─────────────┐
-│  Service A  │────────▶│ Service Registry │◀────────│  Service B  │
-│ (Port 8001) │ Register│   (Port 5000)    │ Discover│ (Port 8002) │
-└─────────────┘         └─────────────────┘         └─────────────┘
-      │                          │                          │
-      └──────── Heartbeat ───────┘                          │
-                                 └──────── Heartbeat ───────┘
+```mermaid
+flowchart LR
+  subgraph Provider["Provider service: user-service (2 instances)"]
+    A1["Instance user-1\nhttp://127.0.0.1:8001"] -->|heartbeat| R
+    A2["Instance user-2\nhttp://127.0.0.1:8002"] -->|heartbeat| R
+  end
+
+  R["Service Registry\nhttp://localhost:5001\n/register /discover /heartbeat"]:::reg
+
+  C["Client\n(discovery_client.py)"] -->|discover user-service| R
+  C -->|call random instance\nGET /hello| A1
+  C -->|call random instance\nGET /hello| A2
+
+  classDef reg fill:#eef,stroke:#556,stroke-width:1px;
 ```
 
 ## 📁 Project Files
@@ -198,19 +204,19 @@ curl http://<MINIKUBE_IP>:30001/health
 python service_registry_improved.py
 ```
 
-**Terminal 2: Start User Service**
+**Terminal 2: Start User Service (instance 1)**
 ```bash
-python example_service.py user-service 8001
+python3 example_service.py serve user-service 8001 --host 127.0.0.1 --instance-id user-1
 ```
 
-**Terminal 3: Start Payment Service**
+**Terminal 3: Start User Service (instance 2)**
 ```bash
-python example_service.py payment-service 8002
+python3 example_service.py serve user-service 8002 --host 127.0.0.1 --instance-id user-2
 ```
 
-**Terminal 4: Run Discovery Demo**
+**Terminal 4: Client discovers + calls random instance**
 ```bash
-python example_service.py demo
+python3 discovery_client.py user-service --calls 12 --interval 0.75
 ```
 
 ## 📡 API Endpoints

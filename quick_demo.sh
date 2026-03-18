@@ -17,9 +17,10 @@ fi
 
 echo "📋 This demo will:"
 echo "   1. Start the service registry"
-echo "   2. Register two services"
-echo "   3. Demonstrate service discovery"
-echo "   4. Show heartbeat mechanism"
+echo "   2. Start TWO instances of one microservice"
+echo "   3. Both instances self-register + heartbeat"
+echo "   4. Client discovers service"
+echo "   5. Client calls RANDOM instance (/hello)"
 echo ""
 echo "Press Ctrl+C to stop at any time"
 echo ""
@@ -45,25 +46,15 @@ fi
 echo "✅ Registry is running on http://localhost:5001"
 echo ""
 
-# Register first service
-echo "📝 Registering user-service..."
-curl -s -X POST http://localhost:5001/register \
-  -H "Content-Type: application/json" \
-  -d '{"service": "user-service", "address": "http://localhost:8001"}' | python3 -m json.tool
-echo ""
+echo "🚀 Starting TWO service instances (user-service)..."
+python3 example_service.py serve user-service 8001 --host 127.0.0.1 --instance-id user-1 > /tmp/user-1.log 2>&1 &
+SVC1_PID=$!
+python3 example_service.py serve user-service 8002 --host 127.0.0.1 --instance-id user-2 > /tmp/user-2.log 2>&1 &
+SVC2_PID=$!
 
-# Register second service
-echo "📝 Registering payment-service..."
-curl -s -X POST http://localhost:5001/register \
-  -H "Content-Type: application/json" \
-  -d '{"service": "payment-service", "address": "http://localhost:8002"}' | python3 -m json.tool
-echo ""
-
-# Register another instance of user-service
-echo "📝 Registering another user-service instance..."
-curl -s -X POST http://localhost:5001/register \
-  -H "Content-Type: application/json" \
-  -d '{"service": "user-service", "address": "http://localhost:8003"}' | python3 -m json.tool
+sleep 2
+echo "   Instance 1 PID: $SVC1_PID (log: /tmp/user-1.log)"
+echo "   Instance 2 PID: $SVC2_PID (log: /tmp/user-2.log)"
 echo ""
 
 # List all services
@@ -76,30 +67,17 @@ echo "🔍 Discovering user-service instances..."
 curl -s http://localhost:5001/discover/user-service | python3 -m json.tool
 echo ""
 
-# Send heartbeat
-echo "💓 Sending heartbeat for user-service..."
-curl -s -X POST http://localhost:5001/heartbeat \
-  -H "Content-Type: application/json" \
-  -d '{"service": "user-service", "address": "http://localhost:8001"}' | python3 -m json.tool
+echo "🎲 Client calling random instances..."
+python3 discovery_client.py user-service --calls 12 --interval 0.75
 echo ""
 
-# Wait and show stale service cleanup
-echo "⏳ Waiting 35 seconds to demonstrate stale service cleanup..."
-echo "   (Services without heartbeats will be removed)"
-for i in {35..1}; do
-    echo -ne "   $i seconds remaining...\r"
-    sleep 1
-done
-echo ""
-
-echo "🔍 Checking services after timeout..."
-curl -s http://localhost:5001/discover/user-service | python3 -m json.tool
-echo ""
-echo "   Notice: Services without heartbeats have been removed!"
+echo "✅ You should see instance_id switching between user-1 and user-2."
 echo ""
 
 # Cleanup
 echo "🧹 Cleaning up..."
+kill $SVC1_PID 2>/dev/null
+kill $SVC2_PID 2>/dev/null
 kill $REGISTRY_PID 2>/dev/null
 echo "✅ Demo complete!"
 echo ""

@@ -1,13 +1,29 @@
-# Service Registry Architecture
+# Service Registry Architecture (Discovery + Random Calls)
 
 ## 📐 System Overview
+
+```mermaid
+flowchart LR
+  R["Service Registry\nhttp://localhost:5001"]:::reg
+
+  subgraph S["Provider: user-service (2 instances)"]
+    I1["Instance user-1\nhttp://127.0.0.1:8001"] -->|register + heartbeat| R
+    I2["Instance user-2\nhttp://127.0.0.1:8002"] -->|register + heartbeat| R
+  end
+
+  C["Client\n(discovery_client.py)"] -->|GET /discover/user-service| R
+  C -->|random choice + GET /hello| I1
+  C -->|random choice + GET /hello| I2
+
+  classDef reg fill:#eef,stroke:#556,stroke-width:1px;
+```
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                     Service Registry System                      │
 │                                                                   │
 │  ┌────────────────────────────────────────────────────────┐    │
-│  │              Service Registry (Port 5000)               │    │
+│  │              Service Registry (Port 5001)               │    │
 │  │                                                          │    │
 │  │  ┌──────────────────────────────────────────────────┐  │    │
 │  │  │         In-Memory Registry Storage               │  │    │
