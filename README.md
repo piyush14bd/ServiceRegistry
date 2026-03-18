@@ -2,6 +2,25 @@
 
 A simple but functional service registry implementation for understanding service discovery in distributed systems.
 
+
+## 🏗️ Architecture
+
+```mermaid
+flowchart LR
+  subgraph Provider["Provider service: user-service (2 instances)"]
+    A1["Instance user-1\nhttp://127.0.0.1:8001"] -->|heartbeat| R
+    A2["Instance user-2\nhttp://127.0.0.1:8002"] -->|heartbeat| R
+  end
+
+  R["Service Registry\nhttp://localhost:5001\n/register /discover /heartbeat"]:::reg
+
+  C["Client\n(discovery_client.py)"] -->|discover user-service| R
+  C -->|call random instance\nGET /hello| A1
+  C -->|call random instance\nGET /hello| A2
+
+  classDef reg fill:#eef,stroke:#556,stroke-width:1px;
+```
+
 ## 🚀 Quick Start
 
 ### Prerequisites
@@ -53,23 +72,6 @@ A **Service Registry** is a database of available service instances in a distrib
 - **Health Monitoring**: Track which services are alive and healthy
 - **Load Balancing**: Distribute requests across multiple service instances
 
-## 🏗️ Architecture
-
-```mermaid
-flowchart LR
-  subgraph Provider["Provider service: user-service (2 instances)"]
-    A1["Instance user-1\nhttp://127.0.0.1:8001"] -->|heartbeat| R
-    A2["Instance user-2\nhttp://127.0.0.1:8002"] -->|heartbeat| R
-  end
-
-  R["Service Registry\nhttp://localhost:5001\n/register /discover /heartbeat"]:::reg
-
-  C["Client\n(discovery_client.py)"] -->|discover user-service| R
-  C -->|call random instance\nGET /hello| A1
-  C -->|call random instance\nGET /hello| A2
-
-  classDef reg fill:#eef,stroke:#556,stroke-width:1px;
-```
 
 ## 📁 Project Files
 
